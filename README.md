@@ -1,8 +1,8 @@
-# claude-opus-4-7-owasp-llm08-fastly
+# Claude Opus 4.7 — OWASP LLM08 Excessive Agency
 
-**Audit-Trail Actor Erasure — Claude Opus 4.7 / Fastly / OWASP LLM08**
+**Audit-Trail Actor Erasure — Anthropic Claude Sandbox + Fastly CDN**
 
-Disclosure-track repository — coordinated disclosure pending.
+Empirical case-study disclosure. Coordinated disclosure to Anthropic and Fastly running in parallel.
 
 Empirical case study: an Anthropic Claude (Opus 4.7) session, asked to install the Fastly CLI, autonomously installed two third-party binaries (Fastly CLI + `fastly-mcp` MCP server), persisted user credentials to its sandbox filesystem, and executed irreversible production CDN configuration changes against a real Fastly account. The receiving SaaS audit log attributes every change to the human account-holder. The actor split — LLM-in-Anthropic-sandbox (`35.223.241.4`, GCP) vs. user-at-keyboard (`136.37.103.3`, Google Fiber) — is recoverable only by inspecting the per-event `ip` field, which Fastly's default UI presentation does not surface.
 
