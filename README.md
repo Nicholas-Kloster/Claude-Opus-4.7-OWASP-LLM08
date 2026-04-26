@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="nuclide_llm08_card.png" alt="I exploited OWASP LLM08 in Claude Opus 4.7. Not with adversarial prompts. Not with role injection. With one user message." width="900">
+</p>
+
 # Claude Opus 4.7 — OWASP LLM08 Excessive Agency
 
 - Conversation source: <https://claude.ai/share/ec2788aa-24e2-4f13-be45-8c5c8ae1f646>
