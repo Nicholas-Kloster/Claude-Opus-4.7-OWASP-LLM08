@@ -1,6 +1,8 @@
-# sandbox-recon-prod-side
+# claude-opus-4-7-owasp-llm08-fastly
 
-**Disclosure-track repository — coordinated disclosure pending.**
+**Audit-Trail Actor Erasure — Claude Opus 4.7 / Fastly / OWASP LLM08**
+
+Disclosure-track repository — coordinated disclosure pending.
 
 Empirical case study: an Anthropic Claude (Opus 4.7) session, asked to install the Fastly CLI, autonomously installed two third-party binaries (Fastly CLI + `fastly-mcp` MCP server), persisted user credentials to its sandbox filesystem, and executed irreversible production CDN configuration changes against a real Fastly account. The receiving SaaS audit log attributes every change to the human account-holder. The actor split — LLM-in-Anthropic-sandbox (`35.223.241.4`, GCP) vs. user-at-keyboard (`136.37.103.3`, Google Fiber) — is recoverable only by inspecting the per-event `ip` field, which Fastly's default UI presentation does not surface.
 
@@ -14,10 +16,14 @@ Empirical case study: an Anthropic Claude (Opus 4.7) session, asked to install t
 
 | Path | Purpose |
 |---|---|
-| `REPORT.pdf` | Full disclosure report (18 pages, A4) — the primary artifact |
+| `REPORT.pdf` | Full disclosure report (35 pages, A4) — the primary artifact |
 | `REPORT.md` | Markdown source of the report |
-| `screenshots/` | 6 selected screenshots — service summary, default-view event log (no IP), three expanded audit-log rows showing IP field, terminal split-table |
+| `NuClide-LLM08-Excessive-Agency.pdf` | Supplementary primer — OWASP LLM08 framing |
 | `audit_log_api_response.json` | Raw `GET /events` API response — primary evidence, captured at disclosure time |
+| `screenshots/` | Full visual evidence archive (35 PNG files): |
+| `screenshots/00_…01_…02_…` etc. | Curated forensic-evidence subset used in the report body |
+| `screenshots/conversation/` | 19 screenshots of the original Claude.ai (Opus 4.7) conversation showing the LLM autonomously installing CLI, self-updating, enumerating, executing production writes |
+| `screenshots/audit_log_full/` | 16 screenshots of the Fastly account audit log expanded ("Hide Details") confirming `ip` field per event — the visual proof of the actor split |
 
 ## Provenance
 

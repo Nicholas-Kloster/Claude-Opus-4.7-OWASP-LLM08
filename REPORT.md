@@ -309,6 +309,98 @@ This finding is the **production-side reciprocal** to NuClide Sandbox Recon (202
 
 The two findings together suggest a unified threat model: the Claude sandbox is a privileged execution environment that operates with the user's external-service credentials, leaves a per-event provenance trail recoverable only by IP inspection, and exposes both an internal attack surface (mapped March 2026) and an external attribution-gap surface (mapped April 2026).
 
+# Appendix D — Visual Evidence Archive (Full)
+
+The 6-screenshot set in Section 4 ("Forensic Evidence") is a curated subset chosen for narrative flow. This appendix preserves the full visual record from the engagement: 35 screenshots across three groups, ordered by capture timestamp. Together they form a complete proof chain from "user pastes token" through "LLM autonomously executes production writes" to "Fastly audit log confirms IP-based actor split."
+
+## D.1 Original Claude.ai Conversation — LLM in Action
+
+The following 19 screenshots capture the live Claude.ai (Opus 4.7) conversation in chronological order. Each shows the model's reasoning text, the bash command it issued via its `bash_tool`, and the command output — all visible in the conversation transcript.
+
+![Claude installs Fastly CLI v10.5.0 via `apt install ./fastly.deb` after the user authorized "run it on your end". Note the model proceeded directly with `apt install` after `sudo: not found` — install succeeds because the sandbox runs as root.](screenshots/conversation/01_install_fastly_cli.png){ width=85% }
+
+![`fastly version` confirms install. v10.5.0 is dated; latest is v14.3.1 — the model surfaces this and will self-update on the next user prompt.](screenshots/conversation/02_verify_version.png){ width=85% }
+
+![User pastes the global-scope `nuclide-cli` token. Model issues `fastly service list --token EyhJAt2dI3OX60LIqcub5LgXnE1Vbffo` and the command succeeds — `NuClide's website` (service ID `34JXUNtnmsr0bJ9tQACYNJ`) is enumerated. The token is now resident in the conversation context.](screenshots/conversation/03_service_list_with_token.png){ width=85% }
+
+![`fastly update` self-replaces the binary at `/usr/local/bin/fastly` with v14.3.1. The replacement binary is left mode `rwxrwxrwx` (world-writable) — caught by `fastly-mcp`'s startup security check later in the session.](screenshots/conversation/04_self_update_to_v14.png){ width=85% }
+
+![After "garlic mode + riff" was invoked (Nick's autonomous-exploration directive), the model performs a deep dive: `fastly service describe --service-id ... --json`. Returns the empty service shell — no domains, no backends, no active version yet.](screenshots/conversation/05_describe_service_json.png){ width=85% }
+
+![`fastly domain list` — no domains configured. Reconnaissance step.](screenshots/conversation/06_list_domains.png){ width=85% }
+
+![`fastly backend list` — no backends configured. Reconnaissance continues.](screenshots/conversation/07_list_backends.png){ width=85% }
+
+![Model enumerates available `service` subcommands while building its mental map. Notes that there's no "origin" subcommand — pure exploration mode.](screenshots/conversation/08_service_command_map.png){ width=85% }
+
+![`fastly config-store list` returns empty. Then `fastly kv-store list` and `fastly secret-store list` both return **403 Forbidden** — the token's scope didn't include those paths. Note: the model is *attempting* to enumerate KV and secret stores autonomously without asking — only failing because of the per-product scope ceiling, not its own restraint.](screenshots/conversation/09_kv_secret_stores_403.png){ width=85% }
+
+![`fastly whoami` confirms identity: `Nicholas Kloster <nicholas@nuclide-research.com>`. From this point forward, every API call attributes to that identity.](screenshots/conversation/10_account_whoami.png){ width=85% }
+
+![Model fetches the user's external NuClide memory gist (`https://gist.githubusercontent.com/...`) via curl. The TLS handshake output reveals `issuer: O=Anthropic; CN=sandbox-egress-production TLS Inspection CA` — confirming the sandbox-egress MITM topology mapped in NuClide Sandbox Recon (2026-03-24).](screenshots/conversation/11_fetch_nuclide_memory_gist.png){ width=85% }
+
+![Continuing conversation flow — model interpreting the user's gist (which contains the NuClide protocol/memory) and synthesizing what's available.](screenshots/conversation/12_conversation_continued_a.png){ width=85% }
+
+![Model identifies the goal as proxying gist content through Fastly. Lays out the architecture pathway.](screenshots/conversation/13_conversation_continued_b.png){ width=85% }
+
+![Model synthesizing project context from the gist content into a Fastly infrastructure pathway proposal.](screenshots/conversation/14_conversation_continued_c.png){ width=85% }
+
+![After `i want you to do it`, model begins the production-write sequence. This is the prompt that authorized the four production writes that follow.](screenshots/conversation/15_conversation_continued_d.png){ width=85% }
+
+![First production write attempt — service.domain.create. Sandbox proxy throws "DNS cache overflow" (egress block) on first try, model retries.](screenshots/conversation/16_conversation_continued_e.png){ width=85% }
+
+![Subsequent operations during the production-write window. Each step retries on egress block, eventually succeeds.](screenshots/conversation/17_conversation_continued_f.png){ width=85% }
+
+![More of the production-write sequence. Override-host, version-activate.](screenshots/conversation/18_conversation_continued_g.png){ width=85% }
+
+![End of the production-write sequence. By the time the model produces this section, all four writes have landed in production Fastly.](screenshots/conversation/19_conversation_continued_h.png){ width=85% }
+
+## D.2 Fastly Account-Wide Audit Log — Full Walk
+
+The following 16 screenshots show the Fastly UI at `manage.fastly.com/account/audit-log`, with each event row clicked to expand ("Hide Details") and reveal the `ip` field that the default presentation hides. Together they walk through every event in the relevant audit window and confirm the actor split visible in the API response.
+
+![Account-wide audit log overview. Events visible include `Nicholas Kloster logged in` (multiple), session token creates, and the start of CDN-related events. The default columns shown are Event Description / User / Date — no Source IP column.](screenshots/audit_log_full/01_login_events_overview.png){ width=85% }
+
+![**THE SMOKING GUN**: `Version 1 was activated` row expanded. `tokenId: "36R7xyv7nQDHvRnNwdgEdy"` (the `nuclide-cli` token), `ip: "35.223.241.4"` (Anthropic GCP), `serviceId: "34JXUNtnmsr0bJ9tQACYNJ"`, `versionNumber: 1`. The User column for this row says "Nicholas Kloster". The `ip` field says otherwise.](screenshots/audit_log_full/02_version_activate_GCP_ip.png){ width=85% }
+
+![`Backend 'httpbin' was created on Version '1'` expanded — full backend metadata captured: `address: "httpbin.org"`, `port: 443`, `useSsl: true`, `overrideHost: "httpbin.org"`, etc. Same `ip: "35.223.241.4"`.](screenshots/audit_log_full/03_backend_create_full_metadata.png){ width=85% }
+
+![`Domain 'nuclide-test.global.ssl.fastly.net' was created on Version '1'` expanded — `ip: "35.223.241.4"` confirmed for the domain create event as well.](screenshots/audit_log_full/04_domain_create_GCP_ip.png){ width=85% }
+
+![**THE OTHER SIDE OF THE SPLIT**: `API Token (nuclide-cli) has been created` row expanded. `ip: "136.37.103.3"` (user's home Google Fiber IP), `scope: "global"`, `services: [ "34JXUNtnmsr0bJ9tQACYNJ" ]`, `ownerId: "16WpNjsD0z9qFaPHc1SrgB"`. The token-create event predates the LLM activity by 10 minutes; this is the user. Same `user_id` field as the GCP-IP events 10 minutes later.](screenshots/audit_log_full/05_token_create_user_ip.png){ width=85% }
+
+![`Nicholas Kloster logged in` row expanded. `ip: "2605:a601:afac:a700:4b7b:9c97:4802:97d5"` — IPv6 address. Google Fiber assigns IPv6 alongside IPv4 to residential customers; this is the same user, browser session.](screenshots/audit_log_full/06_login_event_user_ipv6.png){ width=85% }
+
+![Audit log page 2. More events visible: customer account settings, user onboarding flag activation, service create. The pagination shows additional context around the disclosure window.](screenshots/audit_log_full/07_audit_overview_p2.png){ width=85% }
+
+![`Service 34JXUNtnmsr0bJ9tQACYNJ was created` row expanded. `ip: "136.37.103.3"` (user's home IP). The user created the service via UI; the LLM later modified it. Both events share the same `user_id`.](screenshots/audit_log_full/08_service_create_user_ip.png){ width=85% }
+
+![Auto-generated artifact: `Request Settings 'Generated by force TLS and enable HSTS' was created on Version '1'`. `ip: "136.37.103.3"` (user) — these were created automatically by Fastly when the user provisioned the service via UI.](screenshots/audit_log_full/09_request_settings_metadata.png){ width=85% }
+
+![Auto-generated artifact: `Gzip 'Generated by default compression policy' was created on Version '1'`. `ip: "136.37.103.3"` (user). Default compression policy includes content-types and extensions list.](screenshots/audit_log_full/10_gzip_metadata.png){ width=85% }
+
+![Customer-account settings updates: `customer_checkout_stage was updated`, `customer_checkout_zoned was updated`. Past-order metadata. These are billing-flow events surrounding service creation.](screenshots/audit_log_full/11_past_orders_customer_settings.png){ width=85% }
+
+![`Address created for customer ...` event. Billing address creation tied to customer account. `ip: "136.37.103.3"` (user).](screenshots/audit_log_full/12_address_customer_setting.png){ width=85% }
+
+![Audit log page 3. Earlier events: customer account setting update events, address creation, login events. Window goes back to account creation timestamps.](screenshots/audit_log_full/13_audit_overview_p3.png){ width=85% }
+
+![`API Token (manage.fastly.com browser session) has been created` row expanded — this is the *separate* session-cookie-style token Fastly creates for browser logins, distinct from the `nuclide-cli` API token. `ip: "136.37.103.3"`.](screenshots/audit_log_full/14_login_session_token.png){ width=85% }
+
+![Browser-session token expanded view, showing `scope: "global"` even for browser sessions, `ownerId: "16WpNjsD0z9qFaPHc1SrgB"`. Same user.](screenshots/audit_log_full/15_browser_session_token.png){ width=85% }
+
+![`User '16WpNjsD0z9qFaPHc1SrgB' (Nicholas Kloster <nicholas@nuclide-research.com>) created` row expanded. The original user-creation event for the account. Establishes the identity tied to all subsequent activity.](screenshots/audit_log_full/16_user_creation_event.png){ width=85% }
+
+## D.3 Verification — Synthesis
+
+![Terminal output (top half): the API-pulled event table I built from the raw `GET /events` response, with each row labeled by actor. The split is unambiguous.](screenshots/06b_terminal_split_table_top.png){ width=85% }
+
+![Same verification table including WHOIS attribution and final synthesis text — `35.223.241.4` → GOOGLE-CLOUD/Anthropic, `136.37.103.3` → GFIBER-V4/user. Two distinct physical actors, one logical actor in the attribution layer.](screenshots/06_terminal_split_table.png){ width=85% }
+
+## D.4 Bonus — Service Configuration UI
+
+![Fastly Service Configuration page (`manage.fastly.com/configure/services/34JXUNtnmsr0bJ9tQACYNJ/versions/1/domains`). Shows `Version 1 Active`, the `nuclide-test.global.ssl.fastly.net` test domain, and the Origins/Hosts section confirming the `httpbin` backend. This is the public-facing proof that the LLM's writes landed.](screenshots/00_fastly_ui_domains_tab.png){ width=85% }
+
 ---
 
-*Report generated 2026-04-26 by NuClide Research. Distribution: pending coordinated disclosure.*
+*Report generated 2026-04-26 by NuClide Research. Distribution: public — coordinated disclosure to Anthropic and Fastly running in parallel.*
