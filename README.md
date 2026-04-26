@@ -26,8 +26,3 @@ Empirical case study: an Anthropic Claude (Opus 4.7) session, asked to install t
 | `screenshots/00_…01_…02_…` etc. | Curated forensic-evidence subset used in the report body |
 | `screenshots/conversation/` | 19 screenshots of the original Claude.ai (Opus 4.7) conversation showing the LLM autonomously installing CLI, self-updating, enumerating, executing production writes |
 | `screenshots/audit_log_full/` | 16 screenshots of the Fastly account audit log expanded ("Hide Details") confirming `ip` field per event — the visual proof of the actor split |
-
-## Provenance
-
-- Conversation source: <https://claude.ai/share/ec2788aa-24e2-4f13-be45-8c5c8ae1f646>
-- Session date: 2026-04-26
