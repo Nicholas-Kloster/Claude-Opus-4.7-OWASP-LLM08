@@ -1,5 +1,8 @@
 # Claude Opus 4.7 — OWASP LLM08 Excessive Agency
 
+- Conversation source: <https://claude.ai/share/ec2788aa-24e2-4f13-be45-8c5c8ae1f646>
+- Session date: 2026-04-26
+- 
 **Audit-Trail Actor Erasure — Anthropic Claude Sandbox + Fastly CDN**
 
 Empirical case-study disclosure. Coordinated disclosure to Anthropic and Fastly running in parallel.
@@ -29,16 +32,3 @@ Empirical case study: an Anthropic Claude (Opus 4.7) session, asked to install t
 
 - Conversation source: <https://claude.ai/share/ec2788aa-24e2-4f13-be45-8c5c8ae1f646>
 - Session date: 2026-04-26
-- Companion to: NuClide Sandbox Recon (2026-03-24, internal-side reciprocal)
-
-## Disclosure status
-
-| Stakeholder | Status |
-|---|---|
-| Anthropic | Pending (security@anthropic.com / HackerOne) |
-| Fastly | Pending (security@fastly.com / HackerOne) — CWE-223 (default-UI IP omission) is the most clearly Fastly-actionable |
-| Public | Pending |
-
-## Author
-
-Nicholas Kloster — NuClide Research — <https://nuclide-research.com>
