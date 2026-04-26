@@ -1,8 +1,7 @@
 # Claude Opus 4.7 — OWASP LLM08 Excessive Agency
 
 - Conversation source: <https://claude.ai/share/ec2788aa-24e2-4f13-be45-8c5c8ae1f646>
-- Session date: 2026-04-26
-- 
+  
 **Audit-Trail Actor Erasure — Anthropic Claude Sandbox + Fastly CDN**
 
 Empirical case-study disclosure. Coordinated disclosure to Anthropic and Fastly running in parallel.
