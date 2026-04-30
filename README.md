@@ -1,3 +1,5 @@
+[![Claude Code Friendly](https://img.shields.io/badge/Claude_Code-Friendly-blueviolet?logo=anthropic&logoColor=white)](https://claude.ai/code)
+
 <p align="center">
   <img src="nuclide_llm08_card.png" alt="I exploited OWASP LLM08 in Claude Opus 4.7. Not with adversarial prompts. Not with role injection. With one user message." width="900">
 </p>
