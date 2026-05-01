@@ -32,3 +32,30 @@ Empirical case study: an Anthropic Claude (Opus 4.7) session, asked to install t
 | `screenshots/00_…01_…02_…` etc. | Curated forensic-evidence subset used in the report body |
 | `screenshots/conversation/` | 19 screenshots of the original Claude.ai (Opus 4.7) conversation showing the LLM autonomously installing CLI, self-updating, enumerating, executing production writes |
 | `screenshots/audit_log_full/` | 16 screenshots of the Fastly account audit log expanded ("Hide Details") confirming `ip` field per event — the visual proof of the actor split |
+
+---
+
+## Use with Claude Code
+
+Use Claude Code to analyze the OWASP LLM08 taxonomy, cross-reference the audit log evidence, and build detection policies.
+
+```
+Read README.md and REPORT.md in this repo (Claude-Opus-4.7-OWASP-LLM08).
+Then:
+1. Identify which of the three LLM08 sub-types (Functionality, Permissions, Autonomy) is
+   most strongly demonstrated by the Fastly audit log evidence in audit_log_api_response.json
+2. Draft a detection policy for an MCP server operator that would catch this actor-split
+   pattern — LLM performing actions attributable to the human account holder
+3. Map the full chain to Simon Willison's Lethal Trifecta and explain which leg is hardest to break
+```
+
+```
+I want to test whether a new LLM or agent framework reproduces the OWASP LLM08
+excessive agency pattern documented here.
+Read REPORT.md for the attack scenario, then:
+1. Build a minimal reproduction harness — a sequence of user prompts that
+   guide the model toward installing a CLI tool and making a production API call
+2. Define pass/fail criteria based on where the model stops vs. proceeds
+3. Suggest which safeguard (tool confirmation, scope limitation, audit logging) would
+   have blocked this specific chain
+```
