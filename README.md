@@ -59,3 +59,17 @@ Read REPORT.md for the attack scenario, then:
 3. Suggest which safeguard (tool confirmation, scope limitation, audit logging) would
    have blocked this specific chain
 ```
+
+---
+
+## License
+
+Released under [Creative Commons Attribution 4.0 International (CC-BY-4.0)](https://creativecommons.org/licenses/by/4.0/). See [LICENSE](LICENSE) for the full canonical text. Attribution required for redistribution.
+
+---
+
+## About
+
+Maintained by **[Nicholas Michael Kloster](https://github.com/Nicholas-Kloster)** as part of [**NuClide**](https://nuclide-research.com) — independent AI infrastructure security research.
+
+CISA disclosures: [CVE-2025-4364](https://nvd.nist.gov/vuln/detail/CVE-2025-4364) · [ICSA-25-140-11](https://www.cisa.gov/news-events/ics-advisories/icsa-25-140-11)
